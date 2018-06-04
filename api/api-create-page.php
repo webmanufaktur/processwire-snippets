@@ -3,7 +3,7 @@
 // Create new page via API
 $newpage = new Page();
 
-//http://cheatsheet.processwire.com/page/built-in-methods-reference/page-setoutputformatting-true-false/
+// http://cheatsheet.processwire.com/page/built-in-methods-reference/page-setoutputformatting-true-false/
 $newpage->setOutputFormatting(false);
 
 // example template
