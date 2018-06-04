@@ -1,6 +1,7 @@
 <?php
 
-# https://processwire.com/talk/topic/17436-solved-close-events-with-startdate-and-enddate/?tab=comments#comment-153195
+// Automate cron site check
+// https://processwire.com/talk/topic/17436-solved-close-events-with-startdate-and-enddate/?tab=comments#comment-153195
 
 wire()->addHookAfter('LazyCron::every30Minutes', function (HookEvent $e) {
 
