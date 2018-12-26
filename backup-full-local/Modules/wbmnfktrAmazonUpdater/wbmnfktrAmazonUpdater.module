@@ -1,0 +1,125 @@
+<?php
+/**
+ * Amazon API Updater (0.0.1)
+ * Amazon Affiliate API Abfrage auf Basis der ASIN.
+ * 
+ * @author webmanufaktur
+ * 
+ * ProcessWire 2.x
+ * Copyright (C) 2011 by Ryan Cramer
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ * 
+ * http://www.processwire.com
+ * http://www.ryancramer.com
+ * 
+ */
+
+class wbmnfktrAmazonUpdater extends WireData implements Module, ConfigurableModule {
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => "Amazon API Updater",
+			'version' => "0.0.1",
+			'summary' => "Amazon Affiliate API Abfrage auf Basis der ASIN.",
+			
+			'author' => "webmanufaktur",
+			'href' => "https://webmanufaktur.net/",
+
+			'icon' => 'amazon',
+			
+			'autoload' => true,
+			'singular' => true
+			
+			
+		);
+	}
+
+	// static public function getDefaults() {
+	// 	return array(
+	// 		"key" => "value"
+	// 	);
+    // }
+    
+    public function __construct()
+    {
+        parent::__construct();
+    
+        $this->set('amazonkey', '');
+        $this->set('amazonsecretkey', '');
+        $this->set('amazontag', 'yourtag-20');
+        $this->set('amazonasinfield', 'asin');
+        $this->set('amazontemplate', 'amazon');
+    }
+   
+    public function getModuleConfigInputfields(InputfieldWrapper $wrapper)
+    {
+
+        $amazonkey = $this->modules->InputfieldText;
+        $amazonkey->name = 'amazonkey';
+        $amazonkey->label = $this->_('Amazon API Key');
+        $amazonkey->value = $this->amazonkey;
+        $amazonkey->required = true;
+        $wrapper->add($amazonkey);
+
+        $amazonsecretkey = $this->modules->InputfieldText;
+        $amazonsecretkey->name = 'amazonsecretkey';
+        $amazonsecretkey->label = $this->_('Amazon Secret Key');
+        $amazonsecretkey->value = $this->amazonsecretkey;
+        $amazonsecretkey->required = true;
+        $wrapper->add($amazonsecretkey);
+
+        $amazontag = $this->modules->InputfieldText;
+        $amazontag->name = 'amazontag';
+        $amazontag->label = $this->_('Amazon Affiliate Tag');
+        $amazontag->value = $this->amazontag;
+        $amazontag->required = true;
+        $wrapper->add($amazontag);
+
+        $amazonasinfield = $this->modules->InputfieldText;
+        $amazonasinfield->name = 'amazonasinfield';
+        $amazonasinfield->label = $this->_('Amazon ASIN Feld');
+        $amazonasinfield->value = $this->amazonasinfield;
+        $amazonasinfield->required = true;
+        $wrapper->add($amazonasinfield);
+        
+        $amazontemplate = $this->modules->InputfieldText;
+        $amazontemplate->name = 'amazontemplate';
+        $amazontemplate->label = $this->_('Amazon Produkt Template');
+        $amazontemplate->value = $this->amazontemplate;
+        $amazontemplate->required = true;
+        $wrapper->add($amazontemplate);
+
+        return $wrapper;
+
+    }
+
+    public function init() 
+    {
+		$this->pages->addHookAfter('Pages::saveReady', $this, 'wbmfktrUpdateGMaps');
+	}
+
+    public function wbmfktrUpdateGMaps($event)
+    {
+		
+		$page = $event->arguments[0];
+
+		if($page->template == "$this->amazontemplate" && !$page->isTrash()){
+
+            $this->message("Amazon ist bereit");
+
+			if($page->strasse && $page->plz && $page->ort) {                
+
+				$location = $page->strasse . " " . $page->plz . " " . $page->ort;
+				$page->googlemaps->address = $location;
+				$page->trackChange('googlemaps');
+				// $this->message("Google Maps aktualisiert");
+
+			}
+
+			// $this->message("You just saved page: {$page->strasse}");
+
+		}
+
+    }
+
+}

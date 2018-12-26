@@ -1,0 +1,1 @@
+JustifyLeft, JustifyCenter, JustifyRight, JustifyBlock

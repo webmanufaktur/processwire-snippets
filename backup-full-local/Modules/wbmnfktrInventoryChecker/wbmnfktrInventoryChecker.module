@@ -1,0 +1,183 @@
+<?php
+
+
+class wbmnfktrInventoryChecker extends WireData implements Module, ConfigurableModule {
+
+    public static function getModuleInfo() {
+
+        return array(
+
+            'title' => 'Bestandsmelder für Mittagstischangebote',
+            'summary' => 'Überprüft die Bestände der Mittagstischangebote und meldet per E-Mail, wenn ein bestimmter Stand erreicht bzw. unterschritten wird.',
+            'version' => '001',
+            'author' => 'webmanufaktur',
+            'href' => 'https://webmanufaktur.net/',
+            'icon' => 'cutlery',
+            'singular' => true,
+            'autoload' => true
+            
+            );
+
+    }
+
+    public function init() {
+
+        // wire('log')->save('wbmnfktr-debug', "Bestandsprüfer: " . $this->date);
+
+        if(!$this->template or !$this->criticalamount or !$this->subject or !$this->receiver or !$this->sender or !$this->text or !$this->date) {
+
+            
+
+        } else { 
+
+
+            wire()->addHookAfter('LazyCron::everyDay', function (HookEvent $e) { //everyDay every30Seconds
+
+                $pages = wire('pages');
+                $gerichte = $pages->find("template=$this->template, $this->date>now");
+                $kritischemenge = $this->criticalamount;
+                $vorhandenemenge = count($gerichte);
+
+                wire('log')->save('wbmnfktr-debug', "Bestandsprüfer: " . $vorhandenemenge);
+
+                if($vorhandenemenge <= $kritischemenge ) {
+
+                    wire('log')->save('wbmnfktr-debug', "Bestandsprüfung erfolgt." . $vorhandenemenge);
+                    
+                    if( wire('config')->https ) { $host = "https://"; } else { $host = "http://"; };
+                    $to = $this->receiver;
+                    $from = $this->sender;
+                    $subject = $this->subject;
+                    $body = $this->text;
+                    $body .= "\n\nMittagstischangebote: " . $vorhandenemenge;
+                    $body .= "\n\nAdmin-Backend aufrufen: " . $host . wire('config')->httpHost . wire('config')->urls->admin;
+                    
+                    if($this->signature) {
+                        $body .= "\n\n" . $this->signature . "\n\n";
+                    };
+                
+                    wire('mail')->send($to, $from, $subject, $body);
+            
+                    // wire('log')->save('wbmnfktr-debug', $vorhandenemenge . " - " . $to . " " . $from . " " . $subject . " " . $body);
+                    
+                };
+                        
+            });
+
+        };
+
+    }
+            
+
+    public function getModuleConfigInputfields(InputfieldWrapper $wrapper)
+    {
+
+        // Template ====================
+        $tpl = $this->modules->InputfieldText;
+        $tpl->name = 'template';
+        $tpl->label = $this->_('Template');
+        $tpl->value = $this->template;
+
+        $tpl->description = $this->_('Template der Mittagstischangeboten');
+        $tpl->notes = $this->_('Zum Beispiel: gericht');
+        // $tpl->placeholder = 'gericht';
+        $tpl->required = true;
+        $tpl->columnWidth = 33;
+        $wrapper->add($tpl);
+
+        // Datumsfeld ====================
+        $dte = $this->modules->InputfieldText;
+        $dte->name = 'date';
+        $dte->label = $this->_('Datumsfeld');
+        $dte->value = $this->date;
+
+        $dte->description = $this->_('Datumsfeld');
+        $dte->notes = $this->_('Zum Beispiel: gericht');
+        // $dte->placeholder = 'gericht';
+        $dte->required = true;
+        $dte->columnWidth = 33;
+        $wrapper->add($dte);
+        
+        // Kritische Menge ====================
+        $cra = $this->modules->InputfieldInteger;
+        $cra->name = 'criticalamount';
+        $cra->label = $this->_('Kritische Menge');
+        $cra->value = $this->criticalamount;
+
+        $cra->description = $this->_('Kritische Menge');
+        $cra->notes = $this->_('5 oder 15, Hauptsache eine Ganzzahl');
+        // $cra->placeholder = '5';
+        $cra->required = true;
+        $cra->columnWidth = 34;
+        $wrapper->add($cra);
+
+        // Betreff ====================
+        $sbj = $this->modules->InputfieldText;
+        $sbj->name = 'subject';
+        $sbj->label = $this->_('E-Mail Betreff');
+        $sbj->value = $this->subject;
+
+        $sbj->description = $this->_('Betreff der E-Mail.');
+        $sbj->notes = $this->_('Beispiel: [Bestandswarnung] Nicht mehr viele Mittagstischangebote');
+        $sbj->placeholder = '[Bestandswarnung] Nicht mehr viele Mittagstischangebote';
+        $sbj->required = true;
+        $sbj->columnWidth = 33;
+        $wrapper->add($sbj);
+
+        // Empfänger ====================
+        $rcv = $this->modules->InputfieldText;
+        $rcv->name = 'receiver';
+        $rcv->label = $this->_('E-Mail Empfänger');
+        $rcv->value = $this->receiver;
+
+        $rcv->description = $this->_('E-Mail Adresse des Empfängers.');
+        $rcv->notes = $this->_('Beispiel: to@' . wire('config')->httpHost);
+        $rcv->placeholder = 'to@' . wire('config')->httpHost;
+        $rcv->required = true;
+        $rcv->columnWidth = 33;
+        $wrapper->add($rcv);
+
+        // Absender ====================
+        $snd = $this->modules->InputfieldText;
+        $snd->name = 'sender';
+        $snd->label = $this->_('E-Mail Absender');
+        $snd->value = $this->sender;
+
+        $snd->description = $this->_('E-Mail Adresse des Empfängers.');
+        $snd->notes = $this->_('Beispiel: from@' . wire('config')->httpHost);
+        $snd->placeholder = 'from@' . wire('config')->httpHost;
+        $snd->required = true;
+        $snd->columnWidth = 34;
+        $wrapper->add($snd);
+        
+        // Text ====================
+        $txt = $this->modules->InputfieldTextarea;
+        $txt->name = 'text';
+        $txt->label = $this->_('E-Mail Text');
+        $txt->value = $this->text;
+
+        $txt->description = $this->_('E-Mail Text mit weiteren Informationen oder Anmerkungen.');
+        $txt->notes = $this->_('Beispiel: Es sind nur noch wenige Mittagstischangebote vorhanden. Bitte überprüfen.');
+        // $txt->placeholder = '[Bestandswarnung] Nicht mehr viele Mittagstischangebote';
+        $txt->required = false;
+        $txt->columnWidth = 100;
+        $wrapper->add($txt);
+        
+        // Signature ====================
+        $sig = $this->modules->InputfieldTextarea;
+        $sig->name = 'signature';
+        $sig->label = $this->_('E-Mail Signatur');
+        $sig->value = $this->signature;
+
+        // $sig->description = $this->_('E-Mail Text mit weiteren Informationen oder Anmerkungen.');
+        // $sig->notes = $this->_('Beispiel: Es sind nur noch wenige Mittagstischangebote vorhanden. Bitte überprüfen.');
+        // $sig->placeholder = '[Bestandswarnung] Nicht mehr viele Mittagstischangebote';
+        $sig->required = false;
+        $sig->columnWidth = 100;
+        $wrapper->add($sig);
+
+        return $wrapper;
+
+    }
+
+};

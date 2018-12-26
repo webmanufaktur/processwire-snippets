@@ -1,0 +1,46 @@
+<?php
+
+class wbmnfktrGoogleMapsUpdater extends WireData implements Module {
+
+    public static function getModuleInfo() {
+
+        return array(
+
+            'title' => 'Google Maps Updater',
+            'summary' => 'Befüllt Google Maps Marker Felder auf Basis eingegebener Daten',
+            'version' => '101',
+            'author' => 'webmanufaktur',
+            'href' => 'https://webmanufaktur.net/',
+            'icon' => 'map-marker',
+            'requires' => 'FieldtypeMapMarker',
+            'singular' => true,
+            'autoload' => true
+            
+            );
+    }
+
+    public function init() {
+        $this->pages->addHookAfter('Pages::saveReady', $this, 'wbmfktrUpdateGMaps');
+    }
+    public function wbmfktrUpdateGMaps($event) {
+
+        $page = $event->arguments[0];
+
+        if($page->template == "partner" && !$page->isTrash()){
+
+            if($page->strasse && $page->plz && $page->ort) {                
+
+                $location = $page->strasse . " " . $page->plz . " " . $page->ort;
+                $page->googlemaps->address = $location;
+                $page->trackChange('googlemaps');
+                // $this->message("Google Maps aktualisiert");
+
+            }
+
+            // $this->message("You just saved page: {$page->strasse}");
+
+        }
+
+    }
+
+};

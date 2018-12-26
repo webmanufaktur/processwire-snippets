@@ -1,0 +1,5 @@
+Edit your /site/templates/admin.php file and paste in the following after the opening <?php tag:
+
+$data = $modules->getModuleConfigData('ProCache');
+$data['licenseKey'] = 'PASTE-YOUR-KEY-HERE';
+$modules->saveModuleConfigData('ProCache', $data); 
