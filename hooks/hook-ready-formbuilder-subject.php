@@ -5,12 +5,12 @@
 
 $forms->addHookBefore('FormBuilderProcessor::emailForm', function($event) {
 
-	$form = $event->object;
+    $form = $event->object;
     $formData = $event->arguments(0);
 
     if($form->name == "yourFormNameHere") {
         $subjectField = $formData->getChildByName('yourSubjectField')->value;
         $form->emailSubject = $form->emailSubject . " (" . $subjectField . ")";
     }
-    
+
 });
