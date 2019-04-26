@@ -8,7 +8,7 @@ $forms->addHookBefore('FormBuilderProcessor::emailForm', function($event) {
     $form = $event->object;
     $formData = $event->arguments(0);
 
-    if($form->name == "yourFormNameHere") {
+    if($formData->name == "yourFormNameHere") {
         $fakefrom = $formData->getChildByName('yourEmailFieldHere')->value;
         $form->emailFrom = $fakefrom;
     }
