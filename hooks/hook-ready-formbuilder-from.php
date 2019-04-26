@@ -10,7 +10,10 @@ $forms->addHookBefore('FormBuilderProcessor::emailForm', function($event) {
 
     if($formData->name == "yourFormNameHere") {
         $fakefrom = $formData->getChildByName('yourEmailFieldHere')->value;
+        // Sender
         $form->emailFrom = $fakefrom;
+        // Reply-to
+        $form->emailFrom2 = $fakefrom;
     }
     
 });
