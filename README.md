@@ -1,6 +1,9 @@
 # ProcessWire Snippets
-A curated collection of various ProcessWire-related code snippets.
 
-## v 2021-01 (upcoming)
+A curated collection of various ProcessWire-related code snippets collected throughout the years and projects.
 
-Updated and more sorted version of this repo will come within the next few weeks.
+## Update in progress
+
+The whole collection of snippets is under maintenance and rebuild now.
+
+2021-10-30
